@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% block title %}Notices – Warden{% endblock %}
+{% block page_title %}Notices{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1 class="page-h1">📢 Notices</h1>
+</div>
+
+<div class="card mb-1">
+  <div class="card-header">
+    <h2 class="card-title">Post New Notice</h2>
+  </div>
+  <form method="POST" action="{{ url_for('warden_notices') }}" class="form-grid">
+    <div class="form-group full-width">
+      <label for="title">Title *</label>
+      <input type="text" id="title" name="title" class="form-control" placeholder="Notice title..." required/>
+    </div>
+    <div class="form-group full-width">
+      <label for="content">Content *</label>
+      <textarea id="content" name="content" class="form-control" rows="4" placeholder="Notice content..." required></textarea>
+    </div>
+    <div class="form-group">
+      <label for="target_role">Audience</label>
+      <select id="target_role" name="target_role" class="form-control">
+        <option value="all">All (Students + Wardens)</option>
+        <option value="student">Students Only</option>
+        <option value="warden">Wardens Only</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="priority">Priority</label>
+      <select id="priority" name="priority" class="form-control">
+        <option value="normal">Normal</option>
+        <option value="important">Important</option>
+        <option value="urgent">Urgent</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="expires_at">Expires (optional)</label>
+      <input type="datetime-local" id="expires_at" name="expires_at" class="form-control"/>
+    </div>
+    <div class="form-group full-width">
+      <button type="submit" class="btn btn-primary">Post Notice</button>
+    </div>
+  </form>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <h2 class="card-title">All Notices</h2>
+  </div>
+  <div class="notices-grid">
+    {% for n in notices %}
+    <div class="notice-full-card priority-{{ n.priority }}">
+      <div class="nfc-top">
+        <span class="nfc-badge badge-{{ n.priority }}">{{ n.priority|capitalize }}</span>
+        <span class="nfc-date">{{ n.created_at[:10] }}</span>
+      </div>
+      <h3 class="nfc-title">{{ n.title }}</h3>
+      <p class="nfc-content">{{ n.content }}</p>
+      <div class="nfc-footer">
+        <span>For: {{ n.target_role|capitalize }}</span>
+        <span>— {{ n.posted_by_name }}</span>
+      </div>
+    </div>
+    {% else %}
+    <div class="empty-state">No notices posted yet.</div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

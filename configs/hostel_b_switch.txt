@@ -1,0 +1,100 @@
+! ============================================================
+! CAMPUS HOSTEL LAN – HOSTEL-B SWITCH CONFIGURATION
+! Device: Cisco Catalyst 2960 – hostname: HLN-HostelB-SW
+! Location: Hostel Block B (Floors 1–2)
+! VLANs: 20 (Students), 40 (Common/Lab), 50 (Guest)
+! ============================================================
+
+hostname HLN-HostelB-SW
+enable secret cisco123
+service password-encryption
+no ip domain-lookup
+
+! ── VLANs ────────────────────────────────────────────────────
+vlan 20
+ name STUDENTS
+vlan 40
+ name COMMON_LAB
+vlan 50
+ name GUEST
+
+! ── Uplink to Core Switch – TRUNK ────────────────────────────
+interface GigabitEthernet0/1
+ description Uplink to HLN-Core-SW Gi0/4
+ switchport mode trunk
+ switchport trunk allowed vlan 20,40,50
+ no shutdown
+
+! ── Student Room Ports Floor 1 (VLAN 20) ─────────────────────
+interface range FastEthernet0/1 - 8
+ description Student Room Ports – Block B Floor 1
+ switchport mode access
+ switchport access vlan 20
+ spanning-tree portfast
+ no shutdown
+
+! ── Student Room Ports Floor 2 (VLAN 20) ─────────────────────
+interface range FastEthernet0/9 - 16
+ description Student Room Ports – Block B Floor 2
+ switchport mode access
+ switchport access vlan 20
+ spanning-tree portfast
+ no shutdown
+
+! ── Wi-Fi Access Point Ports – Students (VLAN 20) ────────────
+interface range FastEthernet0/17 - 20
+ description Wi-Fi AP Ports – Student VLAN Block B
+ switchport mode access
+ switchport access vlan 20
+ spanning-tree portfast
+ no shutdown
+
+! ── Common/Lab Area Ports (VLAN 40) ──────────────────────────
+interface FastEthernet0/21
+ description Common Lab Block B – VLAN 40
+ switchport mode access
+ switchport access vlan 40
+ spanning-tree portfast
+ no shutdown
+
+! ── Guest Wi-Fi AP Port (VLAN 50) ────────────────────────────
+interface FastEthernet0/22
+ description Guest Wi-Fi AP Block B – VLAN 50
+ switchport mode access
+ switchport access vlan 50
+ spanning-tree portfast
+ no shutdown
+
+! ── Unused ports – shut down ──────────────────────────────────
+interface range FastEthernet0/23 - 24
+ description Unused
+ switchport mode access
+ switchport access vlan 999
+ shutdown
+
+! ── Management SVI ───────────────────────────────────────────
+interface Vlan20
+ ip address 192.168.20.253 255.255.255.0
+ no shutdown
+
+ip default-gateway 192.168.20.1
+
+! ── Spanning Tree ────────────────────────────────────────────
+spanning-tree mode rapid-pvst
+
+! ── SSH Remote Management ─────────────────────────────────────
+ip domain-name hostel.local
+crypto key generate rsa modulus 2048
+ip ssh version 2
+line vty 0 15
+ transport input ssh
+ login local
+ exec-timeout 10 0
+
+username admin privilege 15 secret admin123
+line console 0
+ login local
+ exec-timeout 5 0
+
+end
+write memory

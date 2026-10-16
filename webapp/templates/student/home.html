@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{% block title %}Student Dashboard{% endblock %}
+{% block page_title %}Student Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-h1">Welcome, {{ student.full_name.split()[0] }}! 👋</h1>
+    <p class="page-sub">{{ student.roll_number }} · {{ student.department }} · Year {{ student.year }}</p>
+  </div>
+  <div class="page-badge badge-student">Student</div>
+</div>
+
+<!-- Stats row -->
+<div class="stats-grid">
+  <div class="stat-card stat-blue">
+    <div class="stat-icon">🛏️</div>
+    <div class="stat-body">
+      <div class="stat-value">{{ student.room_number or 'N/A' }}</div>
+      <div class="stat-label">My Room</div>
+    </div>
+  </div>
+  <div class="stat-card stat-purple">
+    <div class="stat-icon">🏢</div>
+    <div class="stat-body">
+      <div class="stat-value">Block {{ student.block or '–' }}</div>
+      <div class="stat-label">Hostel Block</div>
+    </div>
+  </div>
+  <div class="stat-card stat-amber">
+    <div class="stat-icon">📝</div>
+    <div class="stat-body">
+      <div class="stat-value">{{ pending_complaints }}</div>
+      <div class="stat-label">Active Complaints</div>
+    </div>
+  </div>
+  <div class="stat-card stat-green">
+    <div class="stat-icon">📢</div>
+    <div class="stat-body">
+      <div class="stat-value">{{ notices|length }}</div>
+      <div class="stat-label">New Notices</div>
+    </div>
+  </div>
+</div>
+
+<div class="two-col-grid">
+  <!-- Notices -->
+  <div class="card">
+    <div class="card-header">
+      <h2 class="card-title">📢 Latest Notices</h2>
+      <a href="{{ url_for('student_notices') }}" class="card-link">View All →</a>
+    </div>
+    <div class="notice-list">
+      {% for n in notices %}
+      <div class="notice-item priority-{{ n.priority }}">
+        <div class="notice-top">
+          <span class="notice-title">{{ n.title }}</span>
+          <span class="notice-badge badge-{{ n.priority }}">{{ n.priority|capitalize }}</span>
+        </div>
+        <p class="notice-text">{{ n.content[:120] }}{% if n.content|length > 120 %}…{% endif %}</p>
+        <span class="notice-date">{{ n.created_at[:10] }}</span>
+      </div>
+      {% else %}
+      <div class="empty-state">No notices at this time.</div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Quick actions -->
+  <div class="card">
+    <div class="card-header">
+      <h2 class="card-title">⚡ Quick Actions</h2>
+    </div>
+    <div class="quick-actions">
+      <a href="{{ url_for('student_complaints') }}" class="quick-action qa-red">
+        <span class="qa-icon">📝</span>
+        <span class="qa-label">File a Complaint</span>
+      </a>
+      <a href="{{ url_for('student_mess') }}" class="quick-action qa-green">
+        <span class="qa-icon">🍽️</span>
+        <span class="qa-label">Today's Mess Menu</span>
+      </a>
+      <a href="{{ url_for('student_room') }}" class="quick-action qa-blue">
+        <span class="qa-icon">🛏️</span>
+        <span class="qa-label">Room Details</span>
+      </a>
+      <a href="{{ url_for('student_notices') }}" class="quick-action qa-purple">
+        <span class="qa-icon">📢</span>
+        <span class="qa-label">All Notices</span>
+      </a>
+    </div>
+
+    <!-- Network info card -->
+    <div class="network-badge-card">
+      <h3 class="net-info-title">🌐 Your Network Info</h3>
+      <div class="net-info-grid">
+        <div class="net-info-item">
+          <span class="net-info-label">VLAN</span>
+          <span class="net-info-val vlan-badge vlan-20">20 – Students</span>
+        </div>
+        <div class="net-info-item">
+          <span class="net-info-label">Subnet</span>
+          <span class="net-info-val">192.168.20.0/24</span>
+        </div>
+        <div class="net-info-item">
+          <span class="net-info-label">Gateway</span>
+          <span class="net-info-val">192.168.20.1</span>
+        </div>
+        <div class="net-info-item">
+          <span class="net-info-label">DNS</span>
+          <span class="net-info-val">192.168.100.2</span>
+        </div>
+        <div class="net-info-item">
+          <span class="net-info-label">DHCP</span>
+          <span class="net-info-val status-online">Active</span>
+        </div>
+        <div class="net-info-item">
+          <span class="net-info-label">Wi-Fi</span>
+          <span class="net-info-val">hostel-student</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

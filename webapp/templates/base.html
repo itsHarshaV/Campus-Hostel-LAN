@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{% block title %}Hostel Management{% endblock %} – Campus Hostel LAN</title>
+  <meta name="description" content="Campus Hostel LAN – Hostel Management System"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"/>
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+{% if session.user_id %}
+<!-- Sidebar Navigation -->
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">🏫</div>
+    <div class="logo-text">
+      <span class="logo-title">HostelLAN</span>
+      <span class="logo-sub">Campus Network</span>
+    </div>
+  </div>
+
+  <div class="user-card">
+    <div class="user-avatar">{{ session.full_name[0].upper() }}</div>
+    <div class="user-info">
+      <span class="user-name">{{ session.full_name }}</span>
+      <span class="user-role role-{{ session.role }}">{{ session.role|capitalize }}</span>
+    </div>
+  </div>
+
+  <nav class="sidebar-nav">
+    {% if session.role == 'student' %}
+      <a href="{{ url_for('student_home') }}" class="nav-item {% if request.endpoint == 'student_home' %}active{% endif %}">
+        <span class="nav-icon">🏠</span><span>Dashboard</span>
+      </a>
+      <a href="{{ url_for('student_room') }}" class="nav-item {% if request.endpoint == 'student_room' %}active{% endif %}">
+        <span class="nav-icon">🛏️</span><span>My Room</span>
+      </a>
+      <a href="{{ url_for('student_notices') }}" class="nav-item {% if request.endpoint == 'student_notices' %}active{% endif %}">
+        <span class="nav-icon">📢</span><span>Notices</span>
+      </a>
+      <a href="{{ url_for('student_complaints') }}" class="nav-item {% if request.endpoint == 'student_complaints' %}active{% endif %}">
+        <span class="nav-icon">📝</span><span>Complaints</span>
+      </a>
+      <a href="{{ url_for('student_mess') }}" class="nav-item {% if request.endpoint == 'student_mess' %}active{% endif %}">
+        <span class="nav-icon">🍽️</span><span>Mess Menu</span>
+      </a>
+
+    {% elif session.role == 'warden' %}
+      <a href="{{ url_for('warden_home') }}" class="nav-item {% if request.endpoint == 'warden_home' %}active{% endif %}">
+        <span class="nav-icon">📊</span><span>Dashboard</span>
+      </a>
+      <a href="{{ url_for('warden_students') }}" class="nav-item {% if request.endpoint == 'warden_students' %}active{% endif %}">
+        <span class="nav-icon">👥</span><span>Students</span>
+      </a>
+      <a href="{{ url_for('warden_complaints') }}" class="nav-item {% if request.endpoint == 'warden_complaints' %}active{% endif %}">
+        <span class="nav-icon">🔔</span><span>Complaints</span>
+      </a>
+      <a href="{{ url_for('warden_notices') }}" class="nav-item {% if request.endpoint == 'warden_notices' %}active{% endif %}">
+        <span class="nav-icon">📢</span><span>Notices</span>
+      </a>
+      <a href="{{ url_for('warden_rooms') }}" class="nav-item {% if request.endpoint == 'warden_rooms' %}active{% endif %}">
+        <span class="nav-icon">🏠</span><span>Rooms</span>
+      </a>
+
+    {% elif session.role == 'admin' %}
+      <a href="{{ url_for('admin_home') }}" class="nav-item {% if request.endpoint == 'admin_home' %}active{% endif %}">
+        <span class="nav-icon">📊</span><span>Dashboard</span>
+      </a>
+      <a href="{{ url_for('admin_students') }}" class="nav-item {% if request.endpoint == 'admin_students' %}active{% endif %}">
+        <span class="nav-icon">🎓</span><span>Students</span>
+      </a>
+      <a href="{{ url_for('admin_rooms') }}" class="nav-item {% if request.endpoint == 'admin_rooms' %}active{% endif %}">
+        <span class="nav-icon">🏠</span><span>Rooms</span>
+      </a>
+      <a href="{{ url_for('admin_wardens') }}" class="nav-item {% if request.endpoint == 'admin_wardens' %}active{% endif %}">
+        <span class="nav-icon">👤</span><span>Wardens</span>
+      </a>
+      <a href="{{ url_for('admin_network') }}" class="nav-item {% if request.endpoint == 'admin_network' %}active{% endif %}">
+        <span class="nav-icon">🌐</span><span>Network</span>
+      </a>
+    {% endif %}
+
+    <div class="nav-divider"></div>
+    <a href="{{ url_for('network_dashboard') }}" class="nav-item {% if request.endpoint == 'network_dashboard' %}active{% endif %}">
+      <span class="nav-icon">📡</span><span>Network Dashboard</span>
+    </a>
+    <a href="{{ url_for('logout') }}" class="nav-item nav-logout">
+      <span class="nav-icon">🚪</span><span>Logout</span>
+    </a>
+  </nav>
+</div>
+
+<!-- Main content -->
+<div class="main-content">
+  <div class="topbar">
+    <button class="sidebar-toggle" onclick="toggleSidebar()" id="sidebarToggle">☰</button>
+    <div class="topbar-title">{% block page_title %}{% endblock %}</div>
+    <div class="topbar-right">
+      <span class="topbar-vlan">
+        {% if session.role == 'admin' %}VLAN 10 – Admin
+        {% elif session.role == 'warden' %}VLAN 30 – Warden
+        {% else %}VLAN 20 – Student{% endif %}
+      </span>
+      <span class="topbar-time" id="topbarTime"></span>
+    </div>
+  </div>
+
+  <!-- Flash messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flash-container">
+        {% for cat, msg in messages %}
+          <div class="flash flash-{{ cat }}">
+            <span>{{ msg }}</span>
+            <button onclick="this.parentElement.remove()">✕</button>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <div class="content-area">
+    {% block content %}{% endblock %}
+  </div>
+</div>
+
+{% else %}
+  {% block auth_content %}{% endblock %}
+{% endif %}
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

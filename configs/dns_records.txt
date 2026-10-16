@@ -1,0 +1,66 @@
+! ============================================================
+! CAMPUS HOSTEL LAN – DNS RECORDS
+! DNS Server IP: 192.168.100.2
+! Domain: hostel.local
+! Configured on: Cisco Packet Tracer DNS Server service
+! ============================================================
+
+! ── A Records ─────────────────────────────────────────────────
+
+! Main hostel portal (Web/App Server)
+hostel.local              A    192.168.100.3
+
+! Explicit web server aliases
+www.hostel.local          A    192.168.100.3
+app.hostel.local          A    192.168.100.3
+portal.hostel.local       A    192.168.100.3
+
+! DNS server itself
+dns.hostel.local          A    192.168.100.2
+dhcp.hostel.local         A    192.168.100.2
+
+! Database server (internal only)
+db.hostel.local           A    192.168.100.4
+
+! Router gateway
+router.hostel.local       A    192.168.100.1
+
+! Core switch management
+core-sw.hostel.local      A    192.168.10.254
+
+! Admin switch management
+admin-sw.hostel.local     A    192.168.10.253
+
+! Hostel A switch management
+hostela-sw.hostel.local   A    192.168.20.252
+
+! Hostel B switch management
+hostelb-sw.hostel.local   A    192.168.20.253
+
+! Server switch management
+server-sw.hostel.local    A    192.168.100.254
+
+! Admin services
+admin.hostel.local        A    192.168.10.3
+warden.hostel.local       A    192.168.30.3
+
+! ── PTR Records (Reverse DNS) ─────────────────────────────────
+
+! 192.168.100.x reverse zone: 100.168.192.in-addr.arpa
+3.100.168.192.in-addr.arpa    PTR  hostel.local
+2.100.168.192.in-addr.arpa    PTR  dns.hostel.local
+4.100.168.192.in-addr.arpa    PTR  db.hostel.local
+
+! ── CNAME Records ─────────────────────────────────────────────
+mess.hostel.local         CNAME  hostel.local
+complaints.hostel.local   CNAME  hostel.local
+notices.hostel.local      CNAME  hostel.local
+
+! ── Configuration Notes ───────────────────────────────────────
+! In Cisco Packet Tracer:
+!   1. Select DNS Server (192.168.100.2)
+!   2. Open Services tab → DNS
+!   3. Enable DNS Service (toggle On)
+!   4. Add each A Record Name and Address above
+!   5. Guest VLAN (50) receives 8.8.8.8 as DNS – cannot resolve hostel.local
+!   6. All other VLANs receive 192.168.100.2 as DNS via DHCP

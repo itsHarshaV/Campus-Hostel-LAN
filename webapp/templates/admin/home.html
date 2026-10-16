@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+{% block title %}Admin Dashboard{% endblock %}
+{% block page_title %}Admin Dashboard{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1 class="page-h1">🛡️ Admin Dashboard</h1>
+  <div class="page-badge badge-admin">Administrator</div>
+</div>
+
+<!-- Stats row 1 -->
+<div class="stats-grid stats-grid-3">
+  <div class="stat-card stat-blue">
+    <div class="stat-icon">🎓</div>
+    <div class="stat-body">
+      <div class="stat-value">{{ stats.total_students }}</div>
+      <div class="stat-label">Students</div>
+    </div>
+  </div>
+  <div class="stat-card stat-purple">
+    <div class="stat-icon">👤</div>
+    <div class="stat-body">
+      <div class="stat-value">{{ stats.total_wardens }}</div>
+      <div class="stat-label">Wardens</div>
+    </div>
+  </div>
+  <div class="stat-card stat-green">
+    <div class="stat-icon">🏠</div>
+    <div class="stat-body">
+      <div class="stat-value">{{ stats.total_rooms }}</div>
+      <div class="stat-label">Total Rooms</div>
+    </div>
+  </div>
+  <div class="stat-card stat-teal">
+    <div class="stat-icon">✅</div>
+    <div class="stat-body">
+      <div class="stat-value">{{ stats.available_rooms }}</div>
+      <div class="stat-label">Available</div>
+    </div>
+  </div>
+  <div class="stat-card stat-amber">
+    <div class="stat-icon">🏠</div>
+    <div class="stat-body">
+      <div class="stat-value">{{ stats.full_rooms }}</div>
+      <div class="stat-label">Full Rooms</div>
+    </div>
+  </div>
+  <div class="stat-card stat-red">
+    <div class="stat-icon">🔔</div>
+    <div class="stat-body">
+      <div class="stat-value">{{ stats.pending_complaints }}</div>
+      <div class="stat-label">Pending Complaints</div>
+    </div>
+  </div>
+</div>
+
+<!-- Network stats -->
+<div class="card mb-1">
+  <div class="card-header">
+    <h2 class="card-title">🌐 Network Overview</h2>
+    <a href="{{ url_for('admin_network') }}" class="card-link">Full Details →</a>
+  </div>
+  <div class="vlan-overview-grid">
+    {% for v in vlans %}
+    <div class="vlan-card">
+      <div class="vlan-id">VLAN {{ v.id }}</div>
+      <div class="vlan-name">{{ v.name }}</div>
+      <div class="vlan-subnet">{{ v.subnet }}</div>
+      <div class="vlan-gw">GW: {{ v.gateway }}</div>
+      <div class="vlan-devices">{{ v.devices }} devices</div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Network device stats -->
+<div class="stats-grid">
+  <div class="stat-card stat-green">
+    <div class="stat-icon">📡</div>
+    <div class="stat-body">
+      <div class="stat-value">{{ stats.total_devices }}</div>
+      <div class="stat-label">Network Devices</div>
+    </div>
+  </div>
+  <div class="stat-card stat-teal">
+    <div class="stat-icon">✅</div>
+    <div class="stat-body">
+      <div class="stat-value">{{ stats.online_devices }}</div>
+      <div class="stat-label">Online Devices</div>
+    </div>
+  </div>
+  <div class="stat-card stat-red">
+    <div class="stat-icon">⚠️</div>
+    <div class="stat-body">
+      <div class="stat-value">{{ stats.total_devices - stats.online_devices }}</div>
+      <div class="stat-label">Offline / Issues</div>
+    </div>
+  </div>
+  <div class="stat-card stat-blue">
+    <div class="stat-icon">🔒</div>
+    <div class="stat-body">
+      <div class="stat-value">6 ACLs</div>
+      <div class="stat-label">Access Control Lists</div>
+    </div>
+  </div>
+</div>
+{% endblock %}

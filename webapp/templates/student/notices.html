@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block title %}Notices{% endblock %}
+{% block page_title %}Hostel Notices{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1 class="page-h1">📢 Hostel Notices</h1>
+  <p class="page-sub">Stay updated with the latest announcements</p>
+</div>
+
+<div class="notices-grid">
+  {% for n in notices %}
+  <div class="notice-full-card priority-{{ n.priority }}">
+    <div class="nfc-top">
+      <span class="nfc-badge badge-{{ n.priority }}">
+        {% if n.priority == 'urgent' %}🚨 Urgent
+        {% elif n.priority == 'important' %}⚠️ Important
+        {% else %}📌 Notice{% endif %}
+      </span>
+      <span class="nfc-date">{{ n.created_at[:10] }}</span>
+    </div>
+    <h3 class="nfc-title">{{ n.title }}</h3>
+    <p class="nfc-content">{{ n.content }}</p>
+    <div class="nfc-footer">
+      <span class="nfc-author">— {{ n.posted_by_name }}</span>
+      {% if n.expires_at %}<span class="nfc-expiry">Expires: {{ n.expires_at[:10] }}</span>{% endif %}
+    </div>
+  </div>
+  {% else %}
+  <div class="card">
+    <div class="empty-state large">
+      <span class="empty-icon">📢</span>
+      <p>No notices at this time. Check back later!</p>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

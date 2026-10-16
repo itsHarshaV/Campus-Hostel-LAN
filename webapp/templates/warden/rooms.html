@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block title %}Rooms – Warden{% endblock %}
+{% block page_title %}Room Overview{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1 class="page-h1">🏠 Room Overview</h1>
+  <p class="page-sub">{{ rooms|length }} rooms across Hostel Blocks A & B</p>
+</div>
+
+<div class="rooms-grid">
+  {% for r in rooms %}
+  <div class="room-card status-card-{{ r.status|lower|replace(' ','-') }}">
+    <div class="room-number">{{ r.room_number }}</div>
+    <div class="room-meta">
+      <span>Block {{ r.block }}</span>
+      <span>Floor {{ r.floor }}</span>
+      <span>{{ r.room_type }}</span>
+    </div>
+    <div class="room-occupancy">
+      <div class="occ-bar-wrap">
+        <div class="occ-bar" style="width:{{ (r.student_count / r.capacity * 100)|int }}%"></div>
+      </div>
+      <span class="occ-text">{{ r.student_count }}/{{ r.capacity }}</span>
+    </div>
+    <span class="status-badge status-{{ r.status|lower|replace(' ','-') }}">{{ r.status }}</span>
+    {% if r.amenities %}
+    <div class="room-amenities">
+      {% for a in r.amenities.split(',')[:3] %}
+        <span class="amenity-mini">{{ a.strip() }}</span>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+  {% else %}
+  <div class="empty-state">No rooms found.</div>
+  {% endfor %}
+</div>
+{% endblock %}

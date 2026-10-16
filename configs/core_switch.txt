@@ -1,0 +1,89 @@
+! ============================================================
+! CAMPUS HOSTEL LAN – CORE SWITCH CONFIGURATION
+! Device: Cisco Catalyst 3650 (Layer 3) – hostname: HLN-Core-SW
+! Role  : VLAN trunk aggregation, uplink to router
+! ============================================================
+
+hostname HLN-Core-SW
+enable secret cisco123
+service password-encryption
+no ip domain-lookup
+
+! ── VLANs ────────────────────────────────────────────────────
+vlan 10
+ name ADMIN
+vlan 20
+ name STUDENTS
+vlan 30
+ name WARDENS
+vlan 40
+ name COMMON_LAB
+vlan 50
+ name GUEST
+vlan 100
+ name SERVERS
+
+! ── Uplink to Router (Gi0/1) – TRUNK ─────────────────────────
+interface GigabitEthernet0/1
+ description Uplink to HLN-Router Gi0/1
+ switchport mode trunk
+ switchport trunk allowed vlan 10,20,30,40,50,100
+ switchport trunk native vlan 999
+ no shutdown
+
+! ── Downlink to Admin Switch ──────────────────────────────────
+interface GigabitEthernet0/2
+ description Downlink to HLN-Admin-SW
+ switchport mode trunk
+ switchport trunk allowed vlan 10,30,100
+ no shutdown
+
+! ── Downlink to Hostel-A Switch ──────────────────────────────
+interface GigabitEthernet0/3
+ description Downlink to HLN-HostelA-SW
+ switchport mode trunk
+ switchport trunk allowed vlan 20,40,50
+ no shutdown
+
+! ── Downlink to Hostel-B Switch ──────────────────────────────
+interface GigabitEthernet0/4
+ description Downlink to HLN-HostelB-SW
+ switchport mode trunk
+ switchport trunk allowed vlan 20,40,50
+ no shutdown
+
+! ── Downlink to Server Switch ────────────────────────────────
+interface GigabitEthernet0/5
+ description Downlink to HLN-Server-SW
+ switchport mode trunk
+ switchport trunk allowed vlan 100,10
+ no shutdown
+
+! ── Spanning Tree ────────────────────────────────────────────
+spanning-tree mode rapid-pvst
+spanning-tree vlan 10,20,30,40,50,100 priority 4096
+
+! ── Management VLAN SVI ──────────────────────────────────────
+interface Vlan10
+ description Management SVI
+ ip address 192.168.10.254 255.255.255.0
+ no shutdown
+
+ip default-gateway 192.168.10.1
+
+! ── SSH Remote Management ─────────────────────────────────────
+ip domain-name hostel.local
+crypto key generate rsa modulus 2048
+ip ssh version 2
+line vty 0 15
+ transport input ssh
+ login local
+ exec-timeout 10 0
+
+username admin privilege 15 secret admin123
+line console 0
+ login local
+ exec-timeout 5 0
+
+end
+write memory

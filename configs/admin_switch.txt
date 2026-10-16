@@ -1,0 +1,99 @@
+! ============================================================
+! CAMPUS HOSTEL LAN – ADMIN SWITCH CONFIGURATION
+! Device: Cisco Catalyst 2960 – hostname: HLN-Admin-SW
+! Location: Basement / Administration Block
+! VLANs: 10 (Admin), 30 (Wardens), 100 (Servers – uplink only)
+! ============================================================
+
+hostname HLN-Admin-SW
+enable secret cisco123
+service password-encryption
+no ip domain-lookup
+
+! ── VLANs ────────────────────────────────────────────────────
+vlan 10
+ name ADMIN
+vlan 30
+ name WARDENS
+vlan 100
+ name SERVERS
+
+! ── Uplink to Core Switch – TRUNK ────────────────────────────
+interface GigabitEthernet0/1
+ description Uplink to HLN-Core-SW Gi0/2
+ switchport mode trunk
+ switchport trunk allowed vlan 10,30,100
+ no shutdown
+
+! ── Admin PC Ports (VLAN 10) ─────────────────────────────────
+interface range FastEthernet0/1 - 8
+ description Admin PC Ports – VLAN 10
+ switchport mode access
+ switchport access vlan 10
+ spanning-tree portfast
+ no shutdown
+
+! ── Warden PC Ports (VLAN 30) ────────────────────────────────
+interface range FastEthernet0/9 - 16
+ description Warden PC Ports – VLAN 30
+ switchport mode access
+ switchport access vlan 30
+ spanning-tree portfast
+ no shutdown
+
+! ── Admin Wi-Fi AP Port (VLAN 10) ────────────────────────────
+interface FastEthernet0/17
+ description Admin Wi-Fi Access Point
+ switchport mode access
+ switchport access vlan 10
+ spanning-tree portfast
+ no shutdown
+
+! ── Warden Wi-Fi AP Port (VLAN 30) ───────────────────────────
+interface FastEthernet0/18
+ description Warden Wi-Fi Access Point
+ switchport mode access
+ switchport access vlan 30
+ spanning-tree portfast
+ no shutdown
+
+! ── Unused ports – shut down ──────────────────────────────────
+interface range FastEthernet0/19 - 24
+ description Unused
+ switchport mode access
+ switchport access vlan 999
+ shutdown
+
+! ── Management SVI ───────────────────────────────────────────
+interface Vlan10
+ ip address 192.168.10.253 255.255.255.0
+ no shutdown
+
+ip default-gateway 192.168.10.1
+
+! ── Port Security on Admin Ports ─────────────────────────────
+interface range FastEthernet0/1 - 8
+ switchport port-security
+ switchport port-security maximum 1
+ switchport port-security violation restrict
+ switchport port-security mac-address sticky
+
+! ── Spanning Tree ────────────────────────────────────────────
+spanning-tree mode rapid-pvst
+
+! ── SSH Remote Management ─────────────────────────────────────
+ip domain-name hostel.local
+crypto key generate rsa modulus 2048
+ip ssh version 2
+line vty 0 15
+ transport input ssh
+ login local
+ exec-timeout 10 0
+
+username admin privilege 15 secret admin123
+line console 0
+ login local
+ exec-timeout 5 0
+
+end
+write memory

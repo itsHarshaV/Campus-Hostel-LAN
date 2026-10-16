@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block title %}Students{% endblock %}
+{% block page_title %}Students{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1 class="page-h1">👥 All Students</h1>
+  <p class="page-sub">{{ students|length }} students enrolled</p>
+</div>
+<div class="card">
+  <div class="card-header">
+    <h2 class="card-title">Student Directory</h2>
+    <input type="text" id="searchInput" placeholder="Search students..." class="search-input" oninput="filterTable(this)"/>
+  </div>
+  <div class="complaints-table-wrap">
+    <table class="data-table" id="studentsTable">
+      <thead>
+        <tr>
+          <th>#</th><th>Name</th><th>Roll No.</th><th>Department</th><th>Year</th><th>Room</th><th>Block</th><th>Phone</th><th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in students %}
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td class="td-main">
+            <div class="td-avatar">{{ s.full_name[0] }}</div>
+            {{ s.full_name }}
+          </td>
+          <td>{{ s.roll_number }}</td>
+          <td>{{ s.department }}</td>
+          <td>{{ s.year }}</td>
+          <td>{{ s.room_number or '–' }}</td>
+          <td>{{ s.block or '–' }}</td>
+          <td>{{ s.phone or '–' }}</td>
+          <td><span class="status-badge {{ 'status-online' if s.is_active else 'status-offline' }}">{{ 'Active' if s.is_active else 'Inactive' }}</span></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="9" class="empty-state">No students found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

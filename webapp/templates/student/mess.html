@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% block title %}Mess Menu{% endblock %}
+{% block page_title %}Mess Menu{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1 class="page-h1">🍽️ Mess Menu</h1>
+  <p class="page-sub">Today is <strong>{{ today }}</strong></p>
+</div>
+
+<!-- Today's menu highlight -->
+<div class="card mb-1">
+  <div class="card-header">
+    <h2 class="card-title">🌟 Today's Menu – {{ today }}</h2>
+  </div>
+  {% if today_menu %}
+  <div class="mess-today-grid">
+    {% for m in today_menu %}
+    <div class="mess-meal-card meal-{{ m.meal_type|lower }}">
+      <div class="meal-type-badge">
+        {% if m.meal_type == 'Breakfast' %}🌅
+        {% elif m.meal_type == 'Lunch' %}☀️
+        {% elif m.meal_type == 'Snacks' %}🫖
+        {% else %}🌙{% endif %}
+        {{ m.meal_type }}
+      </div>
+      <div class="meal-time">
+        {% if m.meal_type == 'Breakfast' %}7:00 – 9:00 AM
+        {% elif m.meal_type == 'Lunch' %}12:00 – 2:00 PM
+        {% elif m.meal_type == 'Snacks' %}5:00 – 6:00 PM
+        {% else %}7:30 – 9:30 PM{% endif %}
+      </div>
+      <p class="meal-items">{{ m.items }}</p>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state">No menu available for today.</div>
+  {% endif %}
+</div>
+
+<!-- Weekly menu -->
+<div class="card">
+  <div class="card-header">
+    <h2 class="card-title">📅 Weekly Menu</h2>
+  </div>
+  <div class="week-tabs">
+    {% set days = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'] %}
+    {% for day in days %}
+    <button class="week-tab {% if day == today %}active{% endif %}"
+            onclick="showDay('{{ day }}')" id="tab-{{ day }}">
+      {{ day[:3] }}
+    </button>
+    {% endfor %}
+  </div>
+  {% for day in days %}
+  <div class="day-menu {% if day != today %}hidden{% endif %}" id="day-{{ day }}">
+    <div class="mess-today-grid">
+      {% for m in full_menu.get(day, []) %}
+      <div class="mess-meal-card meal-{{ m.meal_type|lower }}">
+        <div class="meal-type-badge">
+          {% if m.meal_type == 'Breakfast' %}🌅
+          {% elif m.meal_type == 'Lunch' %}☀️
+          {% elif m.meal_type == 'Snacks' %}🫖
+          {% else %}🌙{% endif %}
+          {{ m.meal_type }}
+        </div>
+        <p class="meal-items">{{ m.items }}</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<script>
+function showDay(day) {
+  document.querySelectorAll('.day-menu').forEach(d => d.classList.add('hidden'));
+  document.querySelectorAll('.week-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('day-'+day).classList.remove('hidden');
+  document.getElementById('tab-'+day).classList.add('active');
+}
+</script>
+{% endblock %}

@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% block title %}Manage Students{% endblock %}
+{% block page_title %}Manage Students{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1 class="page-h1">🎓 Manage Students</h1>
+  <button class="btn btn-primary" onclick="toggleModal('addStudentModal')">+ Add Student</button>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <h2 class="card-title">All Students</h2>
+    <input type="text" id="searchInput" placeholder="Search..." class="search-input" oninput="filterTable(this)"/>
+  </div>
+  <div class="complaints-table-wrap">
+    <table class="data-table" id="studentsTable">
+      <thead>
+        <tr><th>#</th><th>Name</th><th>Roll No.</th><th>Dept.</th><th>Year</th><th>Room</th><th>Block</th><th>Status</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        {% for s in students %}
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td class="td-main"><div class="td-avatar">{{ s.full_name[0] }}</div>{{ s.full_name }}</td>
+          <td>{{ s.roll_number }}</td>
+          <td>{{ s.department }}</td>
+          <td>{{ s.year }}</td>
+          <td>{{ s.room_number or '–' }}</td>
+          <td>{{ s.block or '–' }}</td>
+          <td><span class="status-badge {{ 'status-online' if s.is_active else 'status-offline' }}">{{ 'Active' if s.is_active else 'Inactive' }}</span></td>
+          <td>
+            <form method="POST" style="display:inline;">
+              <input type="hidden" name="action" value="toggle"/>
+              <input type="hidden" name="user_id" value="{{ s.user_id }}"/>
+              <button type="submit" class="btn btn-sm btn-amber">Toggle</button>
+            </form>
+            <form method="POST" style="display:inline;" onsubmit="return confirm('Remove student?')">
+              <input type="hidden" name="action" value="delete"/>
+              <input type="hidden" name="student_id" value="{{ s.id }}"/>
+              <button type="submit" class="btn btn-sm btn-danger">Remove</button>
+            </form>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="9" class="empty-state">No students found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Add Student Modal -->
+<div class="modal-overlay hidden" id="addStudentModal" onclick="closeModalOutside(event,'addStudentModal')">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3>Add New Student</h3>
+      <button onclick="toggleModal('addStudentModal')">✕</button>
+    </div>
+    <form method="POST" action="{{ url_for('admin_students') }}" class="form-grid">
+      <input type="hidden" name="action" value="add"/>
+      <div class="form-group"><label>Full Name *</label><input name="full_name" class="form-control" required/></div>
+      <div class="form-group"><label>Username *</label><input name="username" class="form-control" required/></div>
+      <div class="form-group"><label>Password *</label><input name="password" type="password" class="form-control" required/></div>
+      <div class="form-group"><label>Email</label><input name="email" type="email" class="form-control"/></div>
+      <div class="form-group"><label>Phone</label><input name="phone" class="form-control"/></div>
+      <div class="form-group"><label>Roll Number *</label><input name="roll_number" class="form-control" required/></div>
+      <div class="form-group"><label>Department *</label><input name="department" class="form-control" required/></div>
+      <div class="form-group">
+        <label>Year *</label>
+        <select name="year" class="form-control" required>
+          <option value="1">1st Year</option><option value="2">2nd Year</option>
+          <option value="3">3rd Year</option><option value="4">4th Year</option>
+        </select>
+      </div>
+      <div class="form-group full-width">
+        <label>Assign Room</label>
+        <select name="room_id" class="form-control">
+          <option value="">– No Room –</option>
+          {% for r in rooms %}
+          <option value="{{ r.id }}">{{ r.room_number }} (Block {{ r.block }}, {{ r.occupied }}/{{ r.capacity }})</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group full-width">
+        <button type="submit" class="btn btn-primary">Add Student</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

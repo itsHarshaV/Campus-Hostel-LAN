@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% block title %}Warden Dashboard{% endblock %}
+{% block page_title %}Warden Dashboard{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1 class="page-h1">Welcome, {{ session.full_name.split()[0] }}! 👋</h1>
+  <div class="page-badge badge-warden">Warden</div>
+</div>
+
+<div class="stats-grid">
+  <div class="stat-card stat-blue">
+    <div class="stat-icon">🎓</div>
+    <div class="stat-body">
+      <div class="stat-value">{{ stats.total_students }}</div>
+      <div class="stat-label">Total Students</div>
+    </div>
+  </div>
+  <div class="stat-card stat-red">
+    <div class="stat-icon">🔔</div>
+    <div class="stat-body">
+      <div class="stat-value">{{ stats.pending_complaints }}</div>
+      <div class="stat-label">Pending Complaints</div>
+    </div>
+  </div>
+  <div class="stat-card stat-purple">
+    <div class="stat-icon">🏠</div>
+    <div class="stat-body">
+      <div class="stat-value">{{ stats.total_rooms }}</div>
+      <div class="stat-label">Total Rooms</div>
+    </div>
+  </div>
+  <div class="stat-card stat-green">
+    <div class="stat-icon">✅</div>
+    <div class="stat-body">
+      <div class="stat-value">{{ stats.available_rooms }}</div>
+      <div class="stat-label">Available Rooms</div>
+    </div>
+  </div>
+</div>
+
+<div class="two-col-grid">
+  <div class="card">
+    <div class="card-header">
+      <h2 class="card-title">🔔 Recent Complaints</h2>
+      <a href="{{ url_for('warden_complaints') }}" class="card-link">Manage All →</a>
+    </div>
+    <div class="mini-list">
+      {% for c in recent_complaints %}
+      <div class="mini-item">
+        <div class="mini-left">
+          <span class="mini-title">{{ c.subject[:40] }}{% if c.subject|length > 40 %}…{% endif %}</span>
+          <span class="mini-sub">{{ c.full_name }} · {{ c.room_number or 'No room' }}</span>
+        </div>
+        <span class="status-badge status-{{ c.status|lower|replace(' ','-') }}">{{ c.status }}</span>
+      </div>
+      {% else %}
+      <div class="empty-state">No complaints yet.</div>
+      {% endfor %}
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <h2 class="card-title">📢 Recent Notices</h2>
+      <a href="{{ url_for('warden_notices') }}" class="card-link">Post Notice →</a>
+    </div>
+    <div class="mini-list">
+      {% for n in recent_notices %}
+      <div class="mini-item">
+        <div class="mini-left">
+          <span class="mini-title">{{ n.title }}</span>
+          <span class="mini-sub">{{ n.created_at[:10] }} · {{ n.target_role|capitalize }}</span>
+        </div>
+        <span class="notice-badge badge-{{ n.priority }}">{{ n.priority|capitalize }}</span>
+      </div>
+      {% else %}
+      <div class="empty-state">No notices yet.</div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

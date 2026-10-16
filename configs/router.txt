@@ -1,0 +1,165 @@
+! ============================================================
+! CAMPUS HOSTEL LAN – ROUTER CONFIGURATION
+! Device: Cisco 2911 Router (hostname: HLN-Router)
+! Role  : Default gateway, Inter-VLAN routing (router-on-a-stick),
+!         NAT/PAT, DHCP relay, ACL enforcement
+! ============================================================
+
+hostname HLN-Router
+enable secret cisco123
+service password-encryption
+no ip domain-lookup
+banner motd ^Authorized Access Only – Campus Hostel LAN^
+
+! ── Physical interface facing Internet ──────────────────────
+interface GigabitEthernet0/0
+ description WAN – ISP Link
+ ip address 203.0.113.1 255.255.255.252
+ ip nat outside
+ no shutdown
+
+! ── Physical interface facing Core Switch (trunk) ────────────
+interface GigabitEthernet0/1
+ description LAN – Core Switch Trunk
+ no ip address
+ no shutdown
+
+! ── Sub-interface VLAN 10 – Admin ────────────────────────────
+interface GigabitEthernet0/1.10
+ description VLAN 10 – Hostel Administration
+ encapsulation dot1Q 10
+ ip address 192.168.10.1 255.255.255.0
+ ip nat inside
+ ip helper-address 192.168.100.2
+ ip access-group ACL_ADMIN_IN in
+
+! ── Sub-interface VLAN 20 – Students ─────────────────────────
+interface GigabitEthernet0/1.20
+ description VLAN 20 – Students
+ encapsulation dot1Q 20
+ ip address 192.168.20.1 255.255.255.0
+ ip nat inside
+ ip helper-address 192.168.100.2
+ ip access-group ACL_STUDENT_IN in
+
+! ── Sub-interface VLAN 30 – Wardens ──────────────────────────
+interface GigabitEthernet0/1.30
+ description VLAN 30 – Wardens
+ encapsulation dot1Q 30
+ ip address 192.168.30.1 255.255.255.0
+ ip nat inside
+ ip helper-address 192.168.100.2
+ ip access-group ACL_WARDEN_IN in
+
+! ── Sub-interface VLAN 40 – Common/Lab Area ──────────────────
+interface GigabitEthernet0/1.40
+ description VLAN 40 – Common and Lab Area
+ encapsulation dot1Q 40
+ ip address 192.168.40.1 255.255.255.0
+ ip nat inside
+ ip helper-address 192.168.100.2
+ ip access-group ACL_COMMON_IN in
+
+! ── Sub-interface VLAN 50 – Guest ────────────────────────────
+interface GigabitEthernet0/1.50
+ description VLAN 50 – Guest Network
+ encapsulation dot1Q 50
+ ip address 192.168.50.1 255.255.255.0
+ ip nat inside
+ ip helper-address 192.168.100.2
+ ip access-group ACL_GUEST_IN in
+
+! ── Sub-interface VLAN 100 – Servers ─────────────────────────
+interface GigabitEthernet0/1.100
+ description VLAN 100 – Server Network
+ encapsulation dot1Q 100
+ ip address 192.168.100.1 255.255.255.0
+ ip nat inside
+
+! ── NAT/PAT Configuration ─────────────────────────────────────
+ip nat inside source list NAT_ACL interface GigabitEthernet0/0 overload
+
+ip access-list standard NAT_ACL
+ permit 192.168.10.0 0.0.0.255
+ permit 192.168.20.0 0.0.0.255
+ permit 192.168.30.0 0.0.0.255
+ permit 192.168.40.0 0.0.0.255
+ permit 192.168.50.0 0.0.0.255
+ permit 192.168.100.0 0.0.0.255
+
+! ── Static Default Route to ISP ──────────────────────────────
+ip route 0.0.0.0 0.0.0.0 203.0.113.2
+
+! ── ACL: VLAN 10 Admin (full access) ─────────────────────────
+ip access-list extended ACL_ADMIN_IN
+ remark Admin VLAN – full internal and internet access
+ permit ip 192.168.10.0 0.0.0.255 any
+ deny   ip any any log
+
+! ── ACL: VLAN 20 Students ────────────────────────────────────
+ip access-list extended ACL_STUDENT_IN
+ remark Students – can reach Servers and Internet, not Admin/Warden
+ permit tcp 192.168.20.0 0.0.0.255 192.168.100.0 0.0.0.255 eq 80
+ permit tcp 192.168.20.0 0.0.0.255 192.168.100.0 0.0.0.255 eq 443
+ permit tcp 192.168.20.0 0.0.0.255 192.168.100.0 0.0.0.255 eq 53
+ permit udp 192.168.20.0 0.0.0.255 192.168.100.0 0.0.0.255 eq 53
+ permit ip  192.168.20.0 0.0.0.255 192.168.40.0  0.0.0.255
+ permit ip  192.168.20.0 0.0.0.255 0.0.0.0 255.255.255.255
+ deny   ip  192.168.20.0 0.0.0.255 192.168.10.0  0.0.0.255 log
+ deny   ip  192.168.20.0 0.0.0.255 192.168.30.0  0.0.0.255 log
+ deny   ip  any any log
+
+! ── ACL: VLAN 30 Wardens ─────────────────────────────────────
+ip access-list extended ACL_WARDEN_IN
+ remark Wardens – can reach Servers, Admin (limited), and Internet
+ permit ip 192.168.30.0 0.0.0.255 192.168.100.0 0.0.0.255
+ permit ip 192.168.30.0 0.0.0.255 192.168.20.0  0.0.0.255
+ permit ip 192.168.30.0 0.0.0.255 0.0.0.0 255.255.255.255
+ deny   ip 192.168.30.0 0.0.0.255 192.168.10.0  0.0.0.255 log
+ deny   ip any any log
+
+! ── ACL: VLAN 40 Common/Lab ──────────────────────────────────
+ip access-list extended ACL_COMMON_IN
+ remark Common – Internet and Web Server only
+ permit tcp 192.168.40.0 0.0.0.255 192.168.100.0 0.0.0.255 eq 80
+ permit tcp 192.168.40.0 0.0.0.255 192.168.100.0 0.0.0.255 eq 443
+ permit udp 192.168.40.0 0.0.0.255 192.168.100.0 0.0.0.255 eq 53
+ permit ip  192.168.40.0 0.0.0.255 0.0.0.0 255.255.255.255
+ deny   ip  192.168.40.0 0.0.0.255 192.168.10.0  0.0.0.255 log
+ deny   ip  192.168.40.0 0.0.0.255 192.168.30.0  0.0.0.255 log
+ deny   ip  any any log
+
+! ── ACL: VLAN 50 Guest ───────────────────────────────────────
+ip access-list extended ACL_GUEST_IN
+ remark Guest – Internet access only, no internal VLANs
+ deny   ip 192.168.50.0 0.0.0.255 192.168.10.0  0.0.0.255 log
+ deny   ip 192.168.50.0 0.0.0.255 192.168.20.0  0.0.0.255 log
+ deny   ip 192.168.50.0 0.0.0.255 192.168.30.0  0.0.0.255 log
+ deny   ip 192.168.50.0 0.0.0.255 192.168.40.0  0.0.0.255 log
+ deny   ip 192.168.50.0 0.0.0.255 192.168.100.0 0.0.0.255 log
+ permit ip 192.168.50.0 0.0.0.255 any
+
+! ── Logging ───────────────────────────────────────────────────
+logging buffered 16384
+logging console informational
+
+! ── SSH Remote Management ─────────────────────────────────────
+ip domain-name hostel.local
+crypto key generate rsa modulus 2048
+ip ssh version 2
+line vty 0 4
+ transport input ssh
+ login local
+ exec-timeout 10 0
+
+username admin privilege 15 secret admin123
+
+! ── Console Security ─────────────────────────────────────────
+line console 0
+ login local
+ exec-timeout 5 0
+
+end
+
+! ── Save ──────────────────────────────────────────────────────
+write memory

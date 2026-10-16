@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% block title %}Manage Wardens{% endblock %}
+{% block page_title %}Manage Wardens{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1 class="page-h1">👤 Manage Wardens</h1>
+  <button class="btn btn-primary" onclick="toggleModal('addWardenModal')">+ Add Warden</button>
+</div>
+
+<div class="card">
+  <div class="card-header"><h2 class="card-title">Warden Staff</h2></div>
+  <div class="warden-grid">
+    {% for w in wardens %}
+    <div class="warden-card">
+      <div class="warden-avatar">{{ w.full_name[0] }}</div>
+      <div class="warden-info">
+        <div class="warden-name">{{ w.full_name }}</div>
+        <div class="warden-emp">{{ w.employee_id }}</div>
+        <div class="warden-role">{{ w.designation }} – Block {{ w.block }}</div>
+        <div class="warden-contact">
+          <span>📧 {{ w.email or '–' }}</span>
+        </div>
+        <span class="status-badge {{ 'status-online' if w.is_active else 'status-offline' }}">{{ 'Active' if w.is_active else 'Inactive' }}</span>
+      </div>
+      <form method="POST" onsubmit="return confirm('Remove this warden?')">
+        <input type="hidden" name="action" value="delete"/>
+        <input type="hidden" name="warden_id" value="{{ w.id }}"/>
+        <button type="submit" class="btn btn-sm btn-danger">Remove</button>
+      </form>
+    </div>
+    {% else %}
+    <div class="empty-state">No wardens found.</div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Add Warden Modal -->
+<div class="modal-overlay hidden" id="addWardenModal" onclick="closeModalOutside(event,'addWardenModal')">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3>Add New Warden</h3>
+      <button onclick="toggleModal('addWardenModal')">✕</button>
+    </div>
+    <form method="POST" action="{{ url_for('admin_wardens') }}" class="form-grid">
+      <input type="hidden" name="action" value="add"/>
+      <div class="form-group"><label>Full Name *</label><input name="full_name" class="form-control" required/></div>
+      <div class="form-group"><label>Employee ID *</label><input name="employee_id" class="form-control" required/></div>
+      <div class="form-group"><label>Username *</label><input name="username" class="form-control" required/></div>
+      <div class="form-group"><label>Password *</label><input name="password" type="password" class="form-control" required/></div>
+      <div class="form-group"><label>Email</label><input name="email" type="email" class="form-control"/></div>
+      <div class="form-group">
+        <label>Block</label>
+        <select name="block" class="form-control">
+          <option value="A">Block A</option>
+          <option value="B">Block B</option>
+          <option value="Both">Both</option>
+        </select>
+      </div>
+      <div class="form-group full-width"><button type="submit" class="btn btn-primary">Add Warden</button></div>
+    </form>
+  </div>
+</div>
+{% endblock %}

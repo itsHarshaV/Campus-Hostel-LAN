@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+{% block title %}My Room{% endblock %}
+{% block page_title %}My Room{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1 class="page-h1">🛏️ My Room Details</h1>
+  <p class="page-sub">Your accommodation information</p>
+</div>
+
+{% if student.room_number %}
+<div class="two-col-grid">
+  <div class="card">
+    <div class="card-header">
+      <h2 class="card-title">Room Information</h2>
+      <span class="badge badge-{{ 'green' if student.status == 'Available' else 'amber' }}">{{ student.status }}</span>
+    </div>
+    <div class="detail-grid">
+      <div class="detail-item">
+        <span class="detail-label">Room Number</span>
+        <span class="detail-value hl">{{ student.room_number }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Block</span>
+        <span class="detail-value">Hostel Block {{ student.block }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Floor</span>
+        <span class="detail-value">Floor {{ student.floor }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Room Type</span>
+        <span class="detail-value">{{ student.room_type }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Capacity</span>
+        <span class="detail-value">{{ student.capacity }} persons</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Occupied</span>
+        <span class="detail-value">{{ student.occupied }}/{{ student.capacity }}</span>
+      </div>
+    </div>
+    {% if student.amenities %}
+    <div class="amenities-section">
+      <h3 class="section-sub-title">Amenities</h3>
+      <div class="amenities-list">
+        {% for a in student.amenities.split(',') %}
+          <span class="amenity-tag">✓ {{ a.strip() }}</span>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h2 class="card-title">Roommates</h2>
+      <span class="badge-count">{{ roommates|length }}</span>
+    </div>
+    {% if roommates %}
+    <div class="roommate-list">
+      {% for rm in roommates %}
+      <div class="roommate-card">
+        <div class="roommate-avatar">{{ rm.full_name[0] }}</div>
+        <div class="roommate-info">
+          <div class="roommate-name">{{ rm.full_name }}</div>
+          <div class="roommate-meta">{{ rm.roll_number }} · {{ rm.department }}</div>
+          <div class="roommate-meta">Year {{ rm.year }}</div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+      <div class="empty-state">No roommates assigned yet.</div>
+    {% endif %}
+
+    <div class="network-badge-card mt-1">
+      <h3 class="net-info-title">📡 Room Network</h3>
+      <div class="net-info-grid">
+        <div class="net-info-item">
+          <span class="net-info-label">Wi-Fi SSID</span>
+          <span class="net-info-val">hostel-student-{{ student.block }}</span>
+        </div>
+        <div class="net-info-item">
+          <span class="net-info-label">VLAN</span>
+          <span class="net-info-val">20 – Students</span>
+        </div>
+        <div class="net-info-item">
+          <span class="net-info-label">AP Location</span>
+          <span class="net-info-val">Floor {{ student.floor }} Corridor</span>
+        </div>
+        <div class="net-info-item">
+          <span class="net-info-label">DHCP Lease</span>
+          <span class="net-info-val">8 Hours</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% else %}
+<div class="card">
+  <div class="empty-state large">
+    <span class="empty-icon">🛏️</span>
+    <p>No room assigned yet. Please contact the warden or admin.</p>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

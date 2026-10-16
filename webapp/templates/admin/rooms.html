@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% block title %}Manage Rooms{% endblock %}
+{% block page_title %}Manage Rooms{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1 class="page-h1">🏠 Manage Rooms</h1>
+  <button class="btn btn-primary" onclick="toggleModal('addRoomModal')">+ Add Room</button>
+</div>
+
+<div class="rooms-grid">
+  {% for r in rooms %}
+  <div class="room-card status-card-{{ r.status|lower|replace(' ','-') }}">
+    <div class="room-number">{{ r.room_number }}</div>
+    <div class="room-meta">
+      <span>Block {{ r.block }}</span> · <span>Floor {{ r.floor }}</span> · <span>{{ r.room_type }}</span>
+    </div>
+    <div class="room-occupancy">
+      <div class="occ-bar-wrap">
+        <div class="occ-bar" style="width:{{ (r.student_count / r.capacity * 100)|int if r.capacity else 0 }}%"></div>
+      </div>
+      <span class="occ-text">{{ r.student_count }}/{{ r.capacity }}</span>
+    </div>
+    <div class="room-actions">
+      <form method="POST" style="display:flex;gap:0.5rem;align-items:center;">
+        <input type="hidden" name="action" value="update_status"/>
+        <input type="hidden" name="room_id" value="{{ r.id }}"/>
+        <select name="status" class="form-control-sm">
+          {% for s in ['Available','Full','Maintenance'] %}
+            <option value="{{ s }}" {% if r.status == s %}selected{% endif %}>{{ s }}</option>
+          {% endfor %}
+        </select>
+        <button type="submit" class="btn btn-sm btn-primary">Update</button>
+      </form>
+      <form method="POST" onsubmit="return confirm('Delete this room?')">
+        <input type="hidden" name="action" value="delete"/>
+        <input type="hidden" name="room_id" value="{{ r.id }}"/>
+        <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+      </form>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Add Room Modal -->
+<div class="modal-overlay hidden" id="addRoomModal" onclick="closeModalOutside(event,'addRoomModal')">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3>Add New Room</h3>
+      <button onclick="toggleModal('addRoomModal')">✕</button>
+    </div>
+    <form method="POST" action="{{ url_for('admin_rooms') }}" class="form-grid">
+      <input type="hidden" name="action" value="add"/>
+      <div class="form-group"><label>Room Number *</label><input name="room_number" class="form-control" placeholder="e.g. A-301" required/></div>
+      <div class="form-group">
+        <label>Block *</label>
+        <select name="block" class="form-control" required>
+          <option value="A">Block A</option><option value="B">Block B</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Floor *</label>
+        <select name="floor" class="form-control" required>
+          <option value="1">Floor 1</option><option value="2">Floor 2</option><option value="3">Floor 3</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Capacity *</label><input name="capacity" type="number" min="1" max="6" class="form-control" value="3" required/></div>
+      <div class="form-group">
+        <label>Room Type</label>
+        <select name="room_type" class="form-control">
+          <option value="Standard">Standard</option>
+          <option value="Double">Double</option>
+          <option value="Single">Single</option>
+        </select>
+      </div>
+      <div class="form-group full-width"><label>Amenities</label><input name="amenities" class="form-control" placeholder="AC,WiFi,Attached Bathroom"/></div>
+      <div class="form-group full-width"><button type="submit" class="btn btn-primary">Add Room</button></div>
+    </form>
+  </div>
+</div>
+{% endblock %}

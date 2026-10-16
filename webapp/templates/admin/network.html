@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+{% block title %}Network Information{% endblock %}
+{% block page_title %}Network Information{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1 class="page-h1">🌐 Network Configuration</h1>
+  <p class="page-sub">Campus Hostel LAN – VLAN Architecture Overview</p>
+</div>
+
+<!-- VLAN Table -->
+<div class="card mb-1">
+  <div class="card-header"><h2 class="card-title">VLAN Configuration</h2></div>
+  <div class="complaints-table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr><th>VLAN ID</th><th>Name</th><th>Subnet</th><th>Gateway</th><th>DHCP Range</th><th>Lease</th></tr>
+      </thead>
+      <tbody>
+        {% for v in vlans %}
+        <tr>
+          <td><span class="vlan-id-badge vlan-{{ v.id }}">{{ v.id }}</span></td>
+          <td class="td-main">{{ v.name }}</td>
+          <td><code>{{ v.subnet }}</code></td>
+          <td><code>{{ v.gateway }}</code></td>
+          <td><code>{{ v.dhcp_range }}</code></td>
+          <td>{{ v.lease }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Services -->
+<div class="card mb-1">
+  <div class="card-header"><h2 class="card-title">Network Services</h2></div>
+  <div class="services-grid">
+    {% for s in services %}
+    <div class="service-card">
+      <div class="service-status {{ 'status-online' if s.status == 'Online' else 'status-offline' }}">●</div>
+      <div class="service-info">
+        <div class="service-name">{{ s.name }}</div>
+        <div class="service-ip"><code>{{ s.ip }}:{{ s.port }}</code></div>
+        <div class="service-url">{{ s.url }}</div>
+      </div>
+      <span class="status-badge {{ 'status-online' if s.status == 'Online' else 'status-offline' }}">{{ s.status }}</span>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Devices Table -->
+<div class="card">
+  <div class="card-header">
+    <h2 class="card-title">Network Devices</h2>
+    <input type="text" id="searchInput" placeholder="Search devices..." class="search-input" oninput="filterTable(this)"/>
+  </div>
+  <div class="complaints-table-wrap">
+    <table class="data-table" id="studentsTable">
+      <thead>
+        <tr><th>Hostname</th><th>Type</th><th>IP Address</th><th>VLAN</th><th>Location</th><th>MAC</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        {% for d in devices %}
+        <tr>
+          <td class="td-main"><code>{{ d.hostname }}</code></td>
+          <td>{{ d.device_type }}</td>
+          <td><code>{{ d.ip_address }}</code></td>
+          <td>{% if d.vlan %}<span class="vlan-id-badge vlan-{{ d.vlan }}">{{ d.vlan }}</span>{% else %}–{% endif %}</td>
+          <td>{{ d.location }}</td>
+          <td><code class="small-code">{{ d.mac_address }}</code></td>
+          <td><span class="status-badge {{ 'status-online' if d.status == 'Online' else 'status-offline' }}">{{ d.status }}</span></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ACL Summary -->
+<div class="card mt-1">
+  <div class="card-header"><h2 class="card-title">🔒 ACL Policy Summary</h2></div>
+  <div class="acl-grid">
+    <div class="acl-card acl-full">
+      <div class="acl-vlan">VLAN 10 – Admin</div>
+      <div class="acl-desc">Full access to all VLANs and Internet. No restrictions.</div>
+    </div>
+    <div class="acl-card acl-partial">
+      <div class="acl-vlan">VLAN 20 – Students</div>
+      <div class="acl-desc">✅ Web Server (80/443) · ✅ DNS · ✅ Internet · ❌ Admin VLAN · ❌ Warden VLAN</div>
+    </div>
+    <div class="acl-card acl-partial">
+      <div class="acl-vlan">VLAN 30 – Wardens</div>
+      <div class="acl-desc">✅ Server VLAN · ✅ Student VLAN (read) · ✅ Internet · ❌ Admin VLAN</div>
+    </div>
+    <div class="acl-card acl-partial">
+      <div class="acl-vlan">VLAN 40 – Common/Lab</div>
+      <div class="acl-desc">✅ Web Server (80/443) · ✅ DNS · ✅ Internet · ❌ Admin · ❌ Warden</div>
+    </div>
+    <div class="acl-card acl-restricted">
+      <div class="acl-vlan">VLAN 50 – Guest</div>
+      <div class="acl-desc">✅ Internet ONLY · ❌ All internal VLANs blocked · No internal DNS</div>
+    </div>
+    <div class="acl-card acl-server">
+      <div class="acl-vlan">VLAN 100 – Servers</div>
+      <div class="acl-desc">No inbound ACL. Protected by VLAN isolation. Accessible per above rules.</div>
+    </div>
+  </div>
+</div>
+{% endblock %}

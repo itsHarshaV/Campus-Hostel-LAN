@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% block title %}Complaints{% endblock %}
+{% block page_title %}My Complaints{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1 class="page-h1">📝 Complaints</h1>
+  <p class="page-sub">Submit and track your hostel complaints</p>
+</div>
+
+<!-- Submit complaint form -->
+<div class="card mb-1">
+  <div class="card-header">
+    <h2 class="card-title">Submit New Complaint</h2>
+  </div>
+  <form method="POST" action="{{ url_for('student_complaints') }}" class="form-grid">
+    <div class="form-group">
+      <label for="category">Category *</label>
+      <select id="category" name="category" required class="form-control">
+        <option value="">– Select Category –</option>
+        {% for cat in categories %}
+          <option value="{{ cat }}">{{ cat }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="priority">Priority</label>
+      <select id="priority" name="priority" class="form-control">
+        <option value="Normal">Normal</option>
+        <option value="Low">Low</option>
+        <option value="High">High</option>
+        <option value="Urgent">Urgent</option>
+      </select>
+    </div>
+    <div class="form-group full-width">
+      <label for="subject">Subject *</label>
+      <input type="text" id="subject" name="subject" class="form-control"
+             placeholder="Brief description of the issue" required/>
+    </div>
+    <div class="form-group full-width">
+      <label for="description">Description *</label>
+      <textarea id="description" name="description" class="form-control" rows="4"
+                placeholder="Provide detailed information about your complaint..." required></textarea>
+    </div>
+    <div class="form-group full-width">
+      <button type="submit" class="btn btn-primary">Submit Complaint</button>
+    </div>
+  </form>
+</div>
+
+<!-- Complaints list -->
+<div class="card">
+  <div class="card-header">
+    <h2 class="card-title">My Complaints</h2>
+    <span class="badge-count">{{ complaints|length }}</span>
+  </div>
+  {% if complaints %}
+  <div class="complaints-table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Category</th>
+          <th>Subject</th>
+          <th>Priority</th>
+          <th>Status</th>
+          <th>Date</th>
+          <th>Response</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in complaints %}
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td><span class="tag">{{ c.category }}</span></td>
+          <td class="td-main">{{ c.subject }}</td>
+          <td><span class="priority-badge priority-{{ c.priority|lower }}">{{ c.priority }}</span></td>
+          <td><span class="status-badge status-{{ c.status|lower|replace(' ','-') }}">{{ c.status }}</span></td>
+          <td class="td-date">{{ c.created_at[:10] }}</td>
+          <td class="td-response">{{ c.response or '–' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">No complaints submitted yet.</div>
+  {% endif %}
+</div>
+{% endblock %}

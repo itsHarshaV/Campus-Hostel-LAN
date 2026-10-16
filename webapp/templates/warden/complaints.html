@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% block title %}Complaints – Warden{% endblock %}
+{% block page_title %}Manage Complaints{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1 class="page-h1">🔔 Complaints Management</h1>
+  <div class="filter-tabs">
+    <a href="?status=all" class="filter-tab {% if status_filter=='all' %}active{% endif %}">All</a>
+    <a href="?status=Pending" class="filter-tab {% if status_filter=='Pending' %}active{% endif %}">Pending</a>
+    <a href="?status=In Progress" class="filter-tab {% if status_filter=='In Progress' %}active{% endif %}">In Progress</a>
+    <a href="?status=Resolved" class="filter-tab {% if status_filter=='Resolved' %}active{% endif %}">Resolved</a>
+  </div>
+</div>
+
+<div class="complaints-list">
+  {% for c in complaints %}
+  <div class="complaint-card priority-{{ c.priority|lower }}">
+    <div class="complaint-top">
+      <div>
+        <h3 class="complaint-subject">{{ c.subject }}</h3>
+        <div class="complaint-meta">
+          <span>👤 {{ c.full_name }}</span>
+          <span>🏠 {{ c.room_number or 'No room' }}</span>
+          <span>🏷️ {{ c.category }}</span>
+          <span>🕐 {{ c.created_at[:10] }}</span>
+        </div>
+      </div>
+      <div class="complaint-badges">
+        <span class="priority-badge priority-{{ c.priority|lower }}">{{ c.priority }}</span>
+        <span class="status-badge status-{{ c.status|lower|replace(' ','-') }}">{{ c.status }}</span>
+      </div>
+    </div>
+    <p class="complaint-desc">{{ c.description }}</p>
+    {% if c.response %}
+    <div class="complaint-response">
+      <strong>Response:</strong> {{ c.response }}
+    </div>
+    {% endif %}
+    <!-- Update form -->
+    <form method="POST" action="{{ url_for('warden_complaints') }}" class="complaint-update-form">
+      <input type="hidden" name="complaint_id" value="{{ c.id }}"/>
+      <select name="status" class="form-control-sm">
+        {% for s in ['Pending','In Progress','Resolved','Closed'] %}
+          <option value="{{ s }}" {% if c.status == s %}selected{% endif %}>{{ s }}</option>
+        {% endfor %}
+      </select>
+      <input type="text" name="response" class="form-control-sm flex-1"
+             placeholder="Add response..." value="{{ c.response or '' }}"/>
+      <button type="submit" class="btn btn-sm btn-primary">Update</button>
+    </form>
+  </div>
+  {% else %}
+  <div class="card">
+    <div class="empty-state large">
+      <span class="empty-icon">✅</span>
+      <p>No complaints in this category.</p>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

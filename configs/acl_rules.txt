@@ -1,0 +1,126 @@
+! ============================================================
+! CAMPUS HOSTEL LAN – ACL RULES REFERENCE
+! Applied on: HLN-Router sub-interfaces
+! ============================================================
+
+! ── ACL Design Philosophy ─────────────────────────────────────
+!
+!  VLAN 10 (Admin)    → Full access to all VLANs + Internet
+!  VLAN 20 (Students) → Web server (80/443), DNS, Internet; BLOCKED from Admin/Warden
+!  VLAN 30 (Wardens)  → Web server, Students (read), Internet; BLOCKED from Admin
+!  VLAN 40 (Common)   → Web server (80/443), DNS, Internet; BLOCKED from Admin/Warden
+!  VLAN 50 (Guest)    → Internet ONLY; BLOCKED from ALL internal VLANs
+!  VLAN 100 (Servers) → No inbound ACL (protected by being server-only VLAN)
+
+! ── ACL: Students (VLAN 20) ──────────────────────────────────
+!
+! ip access-list extended ACL_STUDENT_IN
+!
+! Rule 10: Allow HTTP to Web Server
+!   permit tcp 192.168.20.0 0.0.0.255 host 192.168.100.3 eq 80
+!
+! Rule 20: Allow HTTPS to Web Server
+!   permit tcp 192.168.20.0 0.0.0.255 host 192.168.100.3 eq 443
+!
+! Rule 30: Allow DNS (TCP/UDP) to DNS Server
+!   permit tcp 192.168.20.0 0.0.0.255 host 192.168.100.2 eq 53
+!   permit udp 192.168.20.0 0.0.0.255 host 192.168.100.2 eq 53
+!
+! Rule 40: Allow access to Common/Lab VLAN
+!   permit ip 192.168.20.0 0.0.0.255 192.168.40.0 0.0.0.255
+!
+! Rule 50: Allow Internet (any address not internal)
+!   permit ip 192.168.20.0 0.0.0.255 any
+!
+! Rule 60: BLOCK Admin VLAN (explicit deny + log)
+!   deny ip 192.168.20.0 0.0.0.255 192.168.10.0 0.0.0.255 log
+!
+! Rule 70: BLOCK Warden VLAN
+!   deny ip 192.168.20.0 0.0.0.255 192.168.30.0 0.0.0.255 log
+!
+! Rule 80: Implicit deny all (logged)
+!   deny ip any any log
+
+! ── ACL: Wardens (VLAN 30) ───────────────────────────────────
+!
+! ip access-list extended ACL_WARDEN_IN
+!
+! Rule 10: Allow full access to Server VLAN
+!   permit ip 192.168.30.0 0.0.0.255 192.168.100.0 0.0.0.255
+!
+! Rule 20: Allow read access to Student VLAN (for management)
+!   permit ip 192.168.30.0 0.0.0.255 192.168.20.0 0.0.0.255
+!
+! Rule 30: Allow Internet access
+!   permit ip 192.168.30.0 0.0.0.255 any
+!
+! Rule 40: BLOCK Admin VLAN
+!   deny ip 192.168.30.0 0.0.0.255 192.168.10.0 0.0.0.255 log
+!
+! Rule 50: Implicit deny all
+!   deny ip any any log
+
+! ── ACL: Common/Lab (VLAN 40) ────────────────────────────────
+!
+! ip access-list extended ACL_COMMON_IN
+!
+! Rule 10: Allow HTTP to Web Server
+!   permit tcp 192.168.40.0 0.0.0.255 host 192.168.100.3 eq 80
+!
+! Rule 20: Allow HTTPS to Web Server
+!   permit tcp 192.168.40.0 0.0.0.255 host 192.168.100.3 eq 443
+!
+! Rule 30: Allow DNS
+!   permit udp 192.168.40.0 0.0.0.255 host 192.168.100.2 eq 53
+!
+! Rule 40: Allow Internet
+!   permit ip 192.168.40.0 0.0.0.255 any
+!
+! Rule 50: BLOCK Admin VLAN
+!   deny ip 192.168.40.0 0.0.0.255 192.168.10.0 0.0.0.255 log
+!
+! Rule 60: BLOCK Warden VLAN
+!   deny ip 192.168.40.0 0.0.0.255 192.168.30.0 0.0.0.255 log
+!
+! Rule 70: Implicit deny all
+!   deny ip any any log
+
+! ── ACL: Guest (VLAN 50) ─────────────────────────────────────
+!
+! ip access-list extended ACL_GUEST_IN
+!
+! Rule 10-60: BLOCK ALL internal VLANs
+!   deny ip 192.168.50.0 0.0.0.255 192.168.10.0 0.0.0.255 log
+!   deny ip 192.168.50.0 0.0.0.255 192.168.20.0 0.0.0.255 log
+!   deny ip 192.168.50.0 0.0.0.255 192.168.30.0 0.0.0.255 log
+!   deny ip 192.168.50.0 0.0.0.255 192.168.40.0 0.0.0.255 log
+!   deny ip 192.168.50.0 0.0.0.255 192.168.100.0 0.0.0.255 log
+!
+! Rule 70: Allow Internet
+!   permit ip 192.168.50.0 0.0.0.255 any
+
+! ── ACL: Admin (VLAN 10) ─────────────────────────────────────
+!
+! ip access-list extended ACL_ADMIN_IN
+!
+! Rule 10: Permit everything (admin has full access)
+!   permit ip 192.168.10.0 0.0.0.255 any
+!
+! Rule 20: Implicit deny all
+!   deny ip any any log
+
+! ── ACL Application Summary ───────────────────────────────────
+!
+! Interface              │ Direction │ ACL Name
+! ───────────────────────┼───────────┼─────────────────────
+! GigabitEthernet0/1.10  │ in        │ ACL_ADMIN_IN
+! GigabitEthernet0/1.20  │ in        │ ACL_STUDENT_IN
+! GigabitEthernet0/1.30  │ in        │ ACL_WARDEN_IN
+! GigabitEthernet0/1.40  │ in        │ ACL_COMMON_IN
+! GigabitEthernet0/1.50  │ in        │ ACL_GUEST_IN
+! GigabitEthernet0/1.100 │ (none)    │ Server VLAN – no inbound ACL
+
+! ── Verification Commands ─────────────────────────────────────
+! show ip access-lists
+! show ip interface GigabitEthernet0/1.20
+! debug ip packet detail  (use cautiously in production)
